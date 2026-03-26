@@ -5,7 +5,7 @@ This is a template repository for an AI voice agent that is able to schedule app
 - Pipecat is configured with sensible defaults and the bot already introduces itself when initialized
 - Playwright is set up so that you can programmatically log into Healthie, the EHR we'll use for this challenge
 
-However, for the agent to be fully functional you'll need to implement the following missig pieces:
+However, for the agent to be fully functional you'll need to implement the following missing pieces:
 
 - Expand the agent's configuration so that it asks for the patient's name and date of birth
 - Once it finds the patient it should ask for the desired date and time of the appointment and create it
