@@ -70,7 +70,7 @@ You'll need a Healthie account for testing, you can create one [here](https://se
 uv run bot.py
 ```
 
-**Open http://localhost:7860 in your browser** and click `Connect` to start talking to your bot.
+**Open http://localhost:7860/client in your browser** and click `Connect` to start talking to your bot.
 
 > 💡 First run note: The initial startup may take ~20 seconds as Pipecat downloads required models and imports.
 
