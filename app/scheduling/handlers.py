@@ -6,7 +6,7 @@ tools from the tools layer and return (message, next_node) tuples.
 
 from pipecat_flows import FlowArgs, FlowManager
 
-from app.shared.tools import find_patient, create_appointment
+from app.shared.tools import create_appointment, find_patient
 
 
 async def handle_collect_name(args: FlowArgs, flow_manager: FlowManager):

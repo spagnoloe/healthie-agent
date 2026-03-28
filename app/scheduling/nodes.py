@@ -6,6 +6,7 @@ to configure a conversation state.
 
 from pipecat_flows import FlowsFunctionSchema, NodeConfig
 
+from .handlers import handle_collect_name, handle_create_appointment, handle_find_patient
 from .prompts import (
     APPOINTMENT_TASK,
     COLLECT_DOB_TASK,
@@ -14,8 +15,6 @@ from .prompts import (
     PATIENT_NOT_FOUND_TASK,
     ROLE_MESSAGES,
 )
-from .handlers import handle_collect_name, handle_create_appointment, handle_find_patient
-
 
 FIND_PATIENT_SCHEMA = {
     "date_of_birth": {
