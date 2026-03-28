@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from loguru import logger
 
+from app.integrations.healthie_api import get_client as get_api_client
 from app.integrations.healthie_playwright import BASE_URL, get_client
 
 
@@ -108,17 +109,14 @@ async def find_patient_playwright(name: str, date_of_birth: str) -> dict | None:
             if normalized_page_dob and normalized_input_dob:
                 if normalized_page_dob != normalized_input_dob:
                     logger.info(
-                        f"DOB mismatch: page={normalized_page_dob}, "
-                        f"input={normalized_input_dob}"
+                        f"DOB mismatch: page={normalized_page_dob}, input={normalized_input_dob}"
                     )
                     return None
             logger.info("DOB verified successfully")
 
         # Cache the patient
         client.patient_cache[patient_id] = found_name
-        logger.info(
-            f"Patient found and cached: {found_name} (ID: {patient_id})"
-        )
+        logger.info(f"Patient found and cached: {found_name} (ID: {patient_id})")
 
         return {
             "patient_id": patient_id,
@@ -150,4 +148,63 @@ def _normalize_date(date_str: str) -> str | None:
             continue
 
     logger.warning(f"Could not normalize date: {date_str}")
+    return None
+
+
+async def find_patient_api(name: str, date_of_birth: str) -> dict | None:
+    """Look up a patient by name and date of birth via the Healthie GraphQL API.
+
+    Args:
+        name: The patient's full name.
+        date_of_birth: The patient's date of birth (YYYY-MM-DD).
+
+    Returns:
+        dict with patient_id, name, date_of_birth if found, or None.
+    """
+    client = await get_api_client()
+
+    query = """
+    query GetPatients($keywords: String) {
+      users(keywords: $keywords, active_status: "Active") {
+        id
+        first_name
+        last_name
+        dob
+      }
+    }
+    """
+
+    try:
+        data = await client.execute(query, {"keywords": name})
+    except Exception as exc:
+        logger.error(f"Error searching for patient: {exc}")
+        return None
+
+    users = data.get("users") or []
+    if not users:
+        logger.info(f"No patients found for: {name}")
+        return None
+
+    # Find the first user whose DOB matches
+    normalized_input_dob = _normalize_date(date_of_birth)
+    for user in users:
+        user_dob = user.get("dob") or ""
+        normalized_user_dob = _normalize_date(user_dob) if user_dob else None
+
+        if (
+            normalized_input_dob
+            and normalized_user_dob
+            and normalized_input_dob == normalized_user_dob
+        ):
+            patient_id = user["id"]
+            found_name = f"{user['first_name']} {user['last_name']}"
+            client.patient_cache[patient_id] = found_name
+            logger.info(f"Patient found via API: {found_name} (ID: {patient_id})")
+            return {
+                "patient_id": patient_id,
+                "name": found_name,
+                "date_of_birth": normalized_user_dob,
+            }
+
+    logger.info(f"No patient matched DOB {date_of_birth} for name: {name}")
     return None

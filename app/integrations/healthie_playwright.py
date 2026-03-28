@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from loguru import logger
-from playwright.async_api import Page, async_playwright
+from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
 
 BASE_URL = "https://securestaging.gethealthie.com"
 AUTH_DIR = Path(__file__).resolve().parents[2] / "auth"
@@ -17,9 +17,9 @@ class HealthiePlaywrightClient:
     """Manages a Playwright browser session authenticated against Healthie."""
 
     def __init__(self) -> None:
-        self._playwright = None
-        self._browser = None
-        self._context = None
+        self._playwright: Playwright | None = None
+        self._browser: Browser | None = None
+        self._context: BrowserContext | None = None
         self._page: Page | None = None
         self.patient_cache: dict[str, str] = {}
 
@@ -129,9 +129,7 @@ class HealthiePlaywrightClient:
         try:
             self._playwright = await async_playwright().start()
             self._browser = await self._playwright.chromium.launch(headless=True)
-            self._context = await self._browser.new_context(
-                storage_state=str(STATE_FILE)
-            )
+            self._context = await self._browser.new_context(storage_state=str(STATE_FILE))
             page = await self._context.new_page()
             await page.goto(BASE_URL, wait_until="domcontentloaded")
             await page.wait_for_timeout(3000)
