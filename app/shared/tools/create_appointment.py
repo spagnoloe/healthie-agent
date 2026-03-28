@@ -17,5 +17,12 @@ async def create_appointment(patient_id: str, date: str, time: str) -> dict | No
     Returns:
         dict with appointment_id, patient_id, date, time if created, or None.
     """
-    # TODO: Replace with real Healthie appointment creation via healthie.py
+    # TODO: Implement appointment creation functionality using Playwright
+    # 1. Ensure you're logged in by calling login_to_healthie()
+    # 2. Navigate to the appointment creation page for the patient
+    # 3. Fill in the date and time fields
+    # 4. Submit the appointment creation form
+    # 5. Verify the appointment was created successfully
+    # 6. Return appointment information
+    # 7. Handle errors (e.g., time slot unavailable, invalid date/time)
     return {"appointment_id": "appt-456", "patient_id": patient_id, "date": date, "time": time}
