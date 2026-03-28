@@ -24,17 +24,7 @@ Architecture decisions for the appointment scheduling voice agent, recorded as t
 
 ---
 
-## 3. Tools decoupled from Healthie vs direct Healthie imports in handlers
-
-**Decision**: Tool functions in `app/shared/tools/` with dummy implementations. Handlers import tools, not Healthie directly.
-
-**Alternative**: Handlers call `healthie.find_patient()` / `healthie.create_appointment()` directly.
-
-**Tradeoff**: Direct Healthie coupling means swapping to another EHR requires changing the flow layer. With tools as an abstraction boundary, the backend is an implementation detail -- swap Healthie for another service by changing the tool files, not the conversation flow. The dummy implementations also enable end-to-end testing of the full flow without a running Healthie instance.
-
----
-
-## 4. Healthie GraphQL API vs Playwright browser automation
+## 3. Healthie GraphQL API vs Playwright browser automation
 
 **Decision**: Instead of using Playwright-based browser automation for finding patients and creating appointments, we use direct Healthie GraphQL API calls (`find_patient_api`, `create_appointment_api`). The bot uses the API functions for patient lookup and appointment creation.
 
@@ -48,9 +38,19 @@ Architecture decisions for the appointment scheduling voice agent, recorded as t
 - **No browser dependency**: Playwright requires a headless Chromium instance (~400MB), session cookie management, and login flow handling. The API client is a lightweight HTTP client with a single API key header -- no browser process, no session expiration, no multi-step login dance.
 - **Simpler error handling**: Playwright errors are opaque (timeout, element not found, navigation failed). GraphQL errors are structured (`messages: [{field, message}]`), making it straightforward to surface meaningful feedback to the user.
 
-**Staging environment note**: We use Healthie's staging API (`staging-api.gethealthie.com/graphql`) because the API is freely available in the staging/sandbox environment. In production, API access requires a paid plan. This is sufficient for development and demonstration; a production deployment would switch to the production API endpoint with a paid API key.
+**Staging environment note**: We use Healthie's staging environment because the API (`staging-api.gethealthie.com/graphql`) is freely available in the staging/sandbox environment. In production, API access requires a paid plan. This is sufficient for development and demonstration; a production deployment would switch to the production API endpoint with a paid API key.
 
-Note that the Playwright functions remain in the codebase as a fallback and as documentation of the UI-based approach. The API approach depends on Healthie's staging API availability and rate limits, but these have been reliable in practice.
+Note that the Playwright functions remain in the codebase as a fallback and as documentation of the UI-based approach.
+
+---
+
+## 4. Tools decoupled from Healthie vs direct Healthie imports in handlers
+
+**Decision**: Tool functions in `app/shared/tools/` and removed healthie.py file. Handlers import tools, not Healthie directly.
+
+**Alternative**: Handlers call `healthie.find_patient()` / `healthie.create_appointment()` directly.
+
+**Tradeoff**: Direct Healthie coupling means swapping to another EHR requires changing the flow layer. With tools as an abstraction boundary, the backend is an implementation detail -- swap Healthie for another service by changing the tool files, not the conversation flow. The dummy implementations also enable end-to-end testing of the full flow without a running Healthie instance.
 
 ---
 
