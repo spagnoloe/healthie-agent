@@ -16,5 +16,10 @@ async def find_patient(name: str, date_of_birth: str) -> dict | None:
     Returns:
         dict with patient_id, name, date_of_birth if found, or None.
     """
-    # TODO: Replace with real Healthie lookup via healthie.py
+    # TODO: Implement patient search functionality using Playwright
+    # 1. Ensure you're logged in by calling login_to_healthie()
+    # 2. Enter the patient's name and date of birth into the search field
+    # 3. Submit the search
+    # 4. Parse the results and return patient information
+    # 5. Handle cases where the patient is not found
     return {"patient_id": "dummy-123", "name": name, "date_of_birth": date_of_birth}
