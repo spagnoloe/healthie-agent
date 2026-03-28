@@ -2,7 +2,11 @@
 
 import pytest
 
-from app.scheduling.handlers import handle_create_appointment, handle_find_patient
+from app.scheduling.handlers import (
+    handle_collect_name,
+    handle_create_appointment,
+    handle_find_patient,
+)
 
 
 class FakeFlowManager:
@@ -10,12 +14,25 @@ class FakeFlowManager:
         self.state = {}
 
 
+class TestHandleCollectName:
+    @pytest.mark.asyncio
+    async def test_stores_name_and_transitions_to_dob_node(self):
+        fm = FakeFlowManager()
+        result_msg, next_node = await handle_collect_name({"name": "Jane Doe"}, fm)
+        assert "Jane Doe" in result_msg
+        assert fm.state["patient_name"] == "Jane Doe"
+        assert next_node is not None
+        assert len(next_node["functions"]) == 1
+        assert next_node["functions"][0].name == "find_patient"
+
+
 class TestHandleFindPatient:
     @pytest.mark.asyncio
     async def test_patient_found_transitions_to_appointment_node(self):
         fm = FakeFlowManager()
+        fm.state["patient_name"] = "Jane Doe"
         result_msg, next_node = await handle_find_patient(
-            {"name": "Jane Doe", "date_of_birth": "1990-01-15"}, fm
+            {"date_of_birth": "1990-01-15"}, fm
         )
         assert "Jane Doe" in result_msg
         assert next_node is not None
@@ -25,16 +42,15 @@ class TestHandleFindPatient:
     @pytest.mark.asyncio
     async def test_patient_found_updates_state(self):
         fm = FakeFlowManager()
+        fm.state["patient_name"] = "Jane Doe"
         await handle_find_patient(
-            {"name": "Jane Doe", "date_of_birth": "1990-01-15"}, fm
+            {"date_of_birth": "1990-01-15"}, fm
         )
         assert fm.state["patient_id"] == "dummy-123"
         assert fm.state["patient_name"] == "Jane Doe"
 
     @pytest.mark.asyncio
     async def test_patient_not_found_transitions_to_not_found_node(self):
-        # Must patch the name in handlers module, not the source module,
-        # because handlers.py binds find_patient via `from ... import`.
         import app.scheduling.handlers as handlers_module
         original = handlers_module.find_patient
 
@@ -44,12 +60,13 @@ class TestHandleFindPatient:
         handlers_module.find_patient = fake_not_found
         try:
             fm = FakeFlowManager()
+            fm.state["patient_name"] = "Nobody"
             result_msg, next_node = await handle_find_patient(
-                {"name": "Nobody", "date_of_birth": "2000-01-01"}, fm
+                {"date_of_birth": "2000-01-01"}, fm
             )
             assert "not found" in result_msg.lower()
             assert next_node is not None
-            assert next_node["functions"][0].name == "find_patient"
+            assert next_node["functions"][0].name == "collect_name"
         finally:
             handlers_module.find_patient = original
 

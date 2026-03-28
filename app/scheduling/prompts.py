@@ -17,8 +17,14 @@ ROLE_MESSAGES = [
 GREETING_TASK = (
     "Greet the patient warmly and introduce yourself as a digital assistant "
     "from the Prosper Health clinic. Tell them you can help schedule an appointment. "
-    "Ask for their full name and date of birth so you can look them up in the system. "
-    "You must collect BOTH the name and date of birth before calling the function."
+    "Ask for their full name so you can look them up in the system. "
+    "Once they provide their name, call the function to proceed."
+)
+
+COLLECT_DOB_TASK = (
+    "You now have the patient's name. Thank them and ask for their date of birth "
+    "so you can look them up in the system. Once they provide it, call the function "
+    "to search for the patient."
 )
 
 APPOINTMENT_TASK = (

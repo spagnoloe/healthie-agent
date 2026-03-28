@@ -9,11 +9,24 @@ from pipecat_flows import FlowArgs, FlowManager
 from app.shared.tools import find_patient, create_appointment
 
 
+async def handle_collect_name(args: FlowArgs, flow_manager: FlowManager):
+    """Handle the collect_name tool call. Stores name and transitions to DOB node."""
+    from .nodes import create_collect_dob_node
+
+    name = args["name"]
+    flow_manager.state["patient_name"] = name
+
+    return (
+        f"Got it, {name}.",
+        create_collect_dob_node(),
+    )
+
+
 async def handle_find_patient(args: FlowArgs, flow_manager: FlowManager):
     """Handle the find_patient tool call. Transitions to appointment or not-found node."""
     from .nodes import create_appointment_node, create_patient_not_found_node
 
-    name = args["name"]
+    name = flow_manager.state["patient_name"]
     date_of_birth = args["date_of_birth"]
 
     result = await find_patient(name, date_of_birth)
