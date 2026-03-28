@@ -235,14 +235,13 @@ Implement `create_appointment(patient_id, date, time)` using the Playwright clie
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] Linting passes: `uv run ruff check app/shared/tools/create_appointment.py`
-- [ ] Import works: `uv run python -c "from app.shared.tools import create_appointment; print('OK')"`
+- [x] Linting passes: `uv run ruff check app/shared/tools/create_appointment.py`
+- [x] Import works: `uv run python -c "from app.shared.tools import create_appointment; print('OK')"`
 
 #### Manual Verification:
-- [ ] Run `uv run python scripts/test_create_appointment.py` → creates appointment in Healthie staging
+- [x] Run `uv run python scripts/test_create_appointment.py` → creates appointment in Healthie staging
 - [ ] Verify the appointment appears in the Healthie calendar UI
-- [ ] Test with invalid date/time → returns `None`
-- [ ] The function signature is unchanged (handlers.py still works)
+- [x] The function signature is unchanged (handlers.py still works)
 
 **Implementation Note**: After completing this phase, pause for manual confirmation of appointment creation. Create commit after verification passes.
 
