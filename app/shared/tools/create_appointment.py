@@ -6,6 +6,7 @@ from datetime import datetime
 
 from loguru import logger
 
+from app.integrations.healthie_api import get_client as get_api_client
 from app.integrations.healthie_playwright import BASE_URL, get_client
 
 
@@ -131,3 +132,104 @@ async def create_appointment_playwright(patient_id: str, date: str, time: str) -
     except Exception as exc:
         logger.error(f"Failed to create appointment: {exc}")
         return None
+
+
+async def create_appointment_api(patient_id: str, date: str, time: str) -> dict | None:
+    """Create an appointment for a patient via the Healthie GraphQL API.
+
+    Args:
+        patient_id: The patient's ID from find_patient_api.
+        date: The appointment date (YYYY-MM-DD).
+        time: The appointment time (HH:MM, 24-hour).
+
+    Returns:
+        dict with appointment_id, patient_id, date, time if created, or None.
+    """
+    client = await get_api_client()
+
+    # First, get the first available appointment type
+    types_query = """
+    query GetAppointmentTypes {
+      appointmentTypes {
+        id
+        name
+      }
+    }
+    """
+
+    try:
+        types_data = await client.execute(types_query)
+    except Exception as exc:
+        logger.error(f"Error fetching appointment types: {exc}")
+        return None
+
+    appointment_types = types_data.get("appointmentTypes") or []
+    if not appointment_types:
+        logger.error("No appointment types available")
+        return None
+
+    appointment_type_id = appointment_types[0]["id"]
+    logger.info(
+        f"Using appointment type: {appointment_types[0]['name']} (ID: {appointment_type_id})"
+    )
+
+    # Combine date and time into datetime string
+    dt_string = f"{date} {time}:00"
+
+    # Create the appointment
+    mutation = """
+    mutation CreateAppointment(
+      $appointment_type_id: String
+      $datetime: String
+      $attendee_ids: [String]
+    ) {
+      createAppointment(input: {
+        appointment_type_id: $appointment_type_id
+        datetime: $datetime
+        attendee_ids: $attendee_ids
+      }) {
+        appointment {
+          id
+          date
+          start_time
+          end_time
+        }
+        messages {
+          field
+          message
+        }
+      }
+    }
+    """
+
+    variables = {
+        "appointment_type_id": appointment_type_id,
+        "datetime": dt_string,
+        "attendee_ids": [patient_id],
+    }
+
+    try:
+        data = await client.execute(mutation, variables)
+    except Exception as exc:
+        logger.error(f"Error creating appointment: {exc}")
+        return None
+
+    result = data.get("createAppointment", {})
+    messages = result.get("messages") or []
+    if messages:
+        for msg in messages:
+            logger.error(f"Appointment error - {msg['field']}: {msg['message']}")
+        return None
+
+    appointment = result.get("appointment")
+    if not appointment:
+        logger.error("No appointment returned from mutation")
+        return None
+
+    logger.info(f"Appointment created via API: ID={appointment['id']}")
+    return {
+        "appointment_id": appointment["id"],
+        "patient_id": patient_id,
+        "date": date,
+        "time": time,
+    }

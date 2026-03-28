@@ -120,9 +120,9 @@ mutation CreateAppointment(
 **Signature**: Identical to `find_patient_playwright` — `(name: str, date_of_birth: str) -> dict | None`
 
 **Acceptance criteria**:
-- [ ] Returns matching patient dict when patient exists and DOB matches
-- [ ] Returns `None` when no patient found or DOB mismatch
-- [ ] Populates `patient_cache` on success
+- [x] Returns matching patient dict when patient exists and DOB matches
+- [x] Returns `None` when no patient found or DOB mismatch
+- [x] Populates `patient_cache` on success
 
 ### Phase 3: Implement `create_appointment_api`
 
@@ -140,9 +140,9 @@ mutation CreateAppointment(
 **Key improvement**: Unlike Playwright version (which always returns `appointment_id: "created"`), the API version returns the **actual appointment ID** from the mutation response.
 
 **Acceptance criteria**:
-- [ ] Creates appointment and returns dict with real appointment ID
-- [ ] Returns `None` on API error, logging the error details
-- [ ] Handles missing appointment types gracefully
+- [x] Creates appointment and returns dict with real appointment ID
+- [x] Returns `None` on API error, logging the error details
+- [x] Handles missing appointment types gracefully
 
 ### Phase 4: Wire up new functions
 
