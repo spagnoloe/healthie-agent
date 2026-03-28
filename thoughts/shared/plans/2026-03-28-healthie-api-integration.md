@@ -1,7 +1,7 @@
 ---
 date: 2026-03-28T12:00:00Z
 topic: "Healthie API Integration"
-status: draft
+status: in-progress
 autonomy: critical
 ---
 
@@ -102,8 +102,8 @@ mutation CreateAppointment(
 - `httpx` to `pyproject.toml` dependencies
 
 **Acceptance criteria**:
-- [ ] `HealthieApiClient` can execute a simple introspection query against staging
-- [ ] API key is read from env; raises clear error if missing
+- [x] `HealthieApiClient` can execute a simple introspection query against staging
+- [x] API key is read from env; raises clear error if missing
 
 ### Phase 2: Implement `find_patient_api`
 
