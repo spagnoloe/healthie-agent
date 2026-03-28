@@ -24,31 +24,7 @@ Architecture decisions for the appointment scheduling voice agent, recorded as t
 
 ---
 
-## 3. Code structure: `app/scheduling/` + `app/shared/tools/` vs single `prompts/scheduling.py`
-
-**Decision**: Feature-first layout under `app/` with two concerns separated:
-- `app/scheduling/` -- the conversation flow (prompts.py, nodes.py, handlers.py)
-- `app/shared/tools/` -- backend-agnostic tool functions (find_patient.py, create_appointment.py)
-
-**Alternatives considered**:
-- **`prompts/scheduling.py`** (single file) -- everything in one place. Simple, but the name is misleading (it's not just prompts) and mixes graph structure, business logic, and system messages.
-- **`flows/scheduling/` + `tools/scheduling/`** (top-level folders per concern) -- clean separation, but tools nested under `scheduling/` implies they're scheduling-specific.
-
-**Tradeoff**: The `app/` layout groups by feature while keeping tools shared. `app/scheduling/` is the flow; `app/shared/tools/` is reusable by future flows (intake, etc.). Slightly deeper nesting, but each folder has a clear reason to exist and the dependency direction is one-way: `app.scheduling -> app.shared.tools`.
-
----
-
-## 4. Three-file split inside `app/scheduling/` vs single file
-
-**Decision**: Split into prompts.py, nodes.py, handlers.py.
-
-**Alternative**: Keep everything in one file (~150 lines).
-
-**Tradeoff**: Three files separate what the bot says (prompts), what the conversation looks like (nodes), and what happens when tools are called (handlers). Prompts can be edited by non-engineers without touching logic. The cost is managing a circular import between nodes and handlers (solved with late imports in handlers). At ~150 lines a single file would be fine, but the separation pays off as soon as prompts need tuning independently.
-
----
-
-## 5. Tools decoupled from Healthie vs direct Healthie imports in handlers
+## 3. Tools decoupled from Healthie vs direct Healthie imports in handlers
 
 **Decision**: Tool functions in `app/shared/tools/` with dummy implementations. Handlers import tools, not Healthie directly.
 
@@ -58,17 +34,27 @@ Architecture decisions for the appointment scheduling voice agent, recorded as t
 
 ---
 
-## 6. Playwright session persistence via storage_state
+## 4. Healthie GraphQL API vs Playwright browser automation
 
-**Decision**: Persist browser session cookies to `auth/healthie_state.json` using Playwright's `storage_state` API. On startup, attempt to restore the saved session before falling back to a fresh login.
+**Decision**: Instead of using Playwright-based browser automation for finding patients and creating appointments, we use direct Healthie GraphQL API calls (`find_patient_api`, `create_appointment_api`). The bot uses the API functions for patient lookup and appointment creation.
 
-**Alternative**: In-memory only -- reuse the browser/page within a single process lifecycle but re-login on every restart.
+**Alternative**: Continue using Playwright to drive Healthie's web UI.
 
-**Tradeoff**: Healthie's login flow is multi-step (email → submit → password → submit → passkey prompt → "Continue to app") and takes 10-15 seconds. For a voice agent where latency matters, paying that cost on every process restart degrades the first caller's experience. `storage_state` serializes cookies and local storage to disk so subsequent startups skip login entirely -- until the session expires, at which point the client detects the redirect to the login page and re-authenticates automatically. The cost is a file on disk containing session tokens, which we mitigate by gitignoring the `auth/` directory. This is acceptable for a staging environment; a production deployment would use a secrets manager instead.
+**Why the API is better**:
+
+- **Reliability**: Browser automation is inherently fragile. Selectors break when Healthie deploys UI changes, SPAs have unpredictable loading states, and multi-step form interactions can fail silently. A GraphQL API call either succeeds or returns an explicit error -- no flaky waits, no stale selectors, no "is the page loaded yet?" guessing.
+- **Speed**: A Playwright flow for `find_patient` navigates pages, waits for search dropdowns (3+ seconds), then navigates to a detail page to verify DOB -- easily 8-10 seconds. The equivalent API call is a single HTTP POST returning in ~200ms. For a voice agent where response latency directly affects user experience, this is a critical improvement.
+- **Data quality**: The Playwright `create_appointment` function couldn't extract the actual appointment ID from the UI -- it returned a hardcoded `"created"` string. The API returns the real appointment ID from the mutation response, enabling proper confirmation and follow-up.
+- **No browser dependency**: Playwright requires a headless Chromium instance (~400MB), session cookie management, and login flow handling. The API client is a lightweight HTTP client with a single API key header -- no browser process, no session expiration, no multi-step login dance.
+- **Simpler error handling**: Playwright errors are opaque (timeout, element not found, navigation failed). GraphQL errors are structured (`messages: [{field, message}]`), making it straightforward to surface meaningful feedback to the user.
+
+**Staging environment note**: We use Healthie's staging API (`staging-api.gethealthie.com/graphql`) because the API is freely available in the staging/sandbox environment. In production, API access requires a paid plan. This is sufficient for development and demonstration; a production deployment would switch to the production API endpoint with a paid API key.
+
+Note that the Playwright functions remain in the codebase as a fallback and as documentation of the UI-based approach. The API approach depends on Healthie's staging API availability and rate limits, but these have been reliable in practice.
 
 ---
 
-## 8. Pre-commit hooks for ruff and mypy
+## 5. Pre-commit hooks for ruff and mypy
 
 **Decision**: Add pre-commit hooks that run ruff (lint + format) and mypy (type checking) on every commit.
 
@@ -78,7 +64,7 @@ Architecture decisions for the appointment scheduling voice agent, recorded as t
 
 ---
 
-## 7. E2E integration test scripts instead of unit tests
+## 6. E2E integration test scripts instead of unit tests
 
 **Decision**: Provide manual integration test scripts (`scripts/test_find_patient.py`, `scripts/test_create_appointment.py`, `scripts/test_e2e_flow.py`) that run against Healthie staging. No unit tests with mocked Playwright.
 
