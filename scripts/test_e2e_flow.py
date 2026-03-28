@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from app.shared.tools import find_patient, create_appointment  # noqa: E402
+from app.shared.tools import create_appointment_playwright, find_patient_playwright  # noqa: E402
 
 
 async def main() -> None:
@@ -21,9 +21,9 @@ async def main() -> None:
     print(f"\n[1/2] Finding patient: {patient_name} (DOB: {date_of_birth})")
 
     try:
-        patient = await find_patient(patient_name, date_of_birth)
+        patient = await find_patient_playwright(patient_name, date_of_birth)
     except Exception as e:
-        print(f"  FAIL: find_patient raised {type(e).__name__}: {e}")
+        print(f"  FAIL: find_patient_playwright raised {type(e).__name__}: {e}")
         sys.exit(1)
 
     if not patient:
@@ -39,9 +39,9 @@ async def main() -> None:
     print(f"\n[2/2] Creating appointment for {appt_date} at {appt_time}")
 
     try:
-        result = await create_appointment(patient_id, appt_date, appt_time)
+        result = await create_appointment_playwright(patient_id, appt_date, appt_time)
     except Exception as e:
-        print(f"  FAIL: create_appointment raised {type(e).__name__}: {e}")
+        print(f"  FAIL: create_appointment_playwright raised {type(e).__name__}: {e}")
         sys.exit(1)
 
     if not result:

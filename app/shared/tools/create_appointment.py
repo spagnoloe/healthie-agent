@@ -22,11 +22,11 @@ def _format_time(time_str: str) -> str:
     return dt.strftime("%-I:%M %p")
 
 
-async def create_appointment(patient_id: str, date: str, time: str) -> dict | None:
+async def create_appointment_playwright(patient_id: str, date: str, time: str) -> dict | None:
     """Create an appointment for a patient.
 
     Args:
-        patient_id: The patient's ID from find_patient.
+        patient_id: The patient's ID from find_patient_playwright.
         date: The appointment date (YYYY-MM-DD).
         time: The appointment time (HH:MM, 24-hour).
 

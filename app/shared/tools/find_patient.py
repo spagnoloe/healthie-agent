@@ -11,7 +11,7 @@ from loguru import logger
 from app.integrations.healthie_playwright import BASE_URL, get_client
 
 
-async def find_patient(name: str, date_of_birth: str) -> dict | None:
+async def find_patient_playwright(name: str, date_of_birth: str) -> dict | None:
     """Look up a patient by name and date of birth.
 
     Args:

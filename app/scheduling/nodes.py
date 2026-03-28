@@ -52,7 +52,7 @@ def create_collect_dob_node() -> NodeConfig:
         "task_messages": [{"role": "system", "content": COLLECT_DOB_TASK}],
         "functions": [
             FlowsFunctionSchema(
-                name="find_patient",
+                name="find_patient_playwright",
                 description="Look up a patient by name and date of birth",
                 properties=FIND_PATIENT_SCHEMA,
                 required=["date_of_birth"],
@@ -68,7 +68,7 @@ def create_appointment_node() -> NodeConfig:
         "task_messages": [{"role": "system", "content": APPOINTMENT_TASK}],
         "functions": [
             FlowsFunctionSchema(
-                name="create_appointment",
+                name="create_appointment_playwright",
                 description="Create an appointment for the patient",
                 properties={
                     "date": {
