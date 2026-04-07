@@ -10,11 +10,9 @@ Backend integrations live in `app/integrations/` (Healthie API client) and are e
 
 ---
 
-Architecture decisions for the appointment scheduling voice agent, recorded as they were made.
-
----
-
 # Decision Log
+
+Architecture decisions for the appointment scheduling voice agent, recorded as they were made.
 
 ## 1. Sequential flow vs upfront collection
 
@@ -83,6 +81,8 @@ Note that the Playwright functions remain in the codebase as documentation of th
 **Alternative**: Unit tests that mock Playwright's page/locator objects to verify the automation logic in isolation.
 
 **Tradeoff**: The value of these tools is that they interact correctly with Healthie's real UI -- the exact selectors, the SPA loading behavior, the multi-step login. Mocking Playwright would test that our code calls `.fill()` and `.click()` in the right order, but wouldn't catch the failures that actually matter: a selector changing after a Healthie deploy, a new loading spinner, or a form field being renamed. Mocked tests pass when the mock matches our assumptions; they fail to catch when our assumptions no longer match reality. E2E scripts against staging catch exactly those regressions. The cost is that tests require network access and a valid staging account, making them unsuitable for CI -- but for browser automation tools, that tradeoff is correct.
+
+Note that unit tests are kept for testing handler logic (state transitions, message content, node shapes) and tool functions (API responses).
 
 ---
 
