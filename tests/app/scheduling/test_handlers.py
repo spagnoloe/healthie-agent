@@ -25,7 +25,7 @@ class TestHandleCollectName:
         assert fm.state["patient_name"] == "Jane Doe"
         assert next_node is not None
         assert len(next_node["functions"]) == 1
-        assert next_node["functions"][0].name == "find_patient_playwright"
+        assert next_node["functions"][0].name == "find_patient"
 
 
 class TestHandleFindPatient:
@@ -43,7 +43,7 @@ class TestHandleFindPatient:
         assert "Jane Doe" in result_msg
         assert next_node is not None
         assert len(next_node["functions"]) == 1
-        assert next_node["functions"][0].name == "create_appointment_playwright"
+        assert next_node["functions"][0].name == "create_appointment"
 
     @pytest.mark.asyncio
     @patch("app.scheduling.handlers.find_patient", new_callable=AsyncMock)
