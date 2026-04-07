@@ -1,4 +1,4 @@
-# Solution: Decision Log
+# Solution: Scheduling Agent with pipecat-flows and Healthie API integration
 
 ## Description
 
@@ -13,6 +13,8 @@ Backend integrations live in `app/integrations/` (Healthie API client) and are e
 Architecture decisions for the appointment scheduling voice agent, recorded as they were made.
 
 ---
+
+# Decision Log
 
 ## 1. Sequential flow vs upfront collection
 
@@ -74,9 +76,9 @@ Note that the Playwright functions remain in the codebase as documentation of th
 
 ---
 
-## 6. E2E integration test scripts instead of unit tests (for Playwright flows only)
+## 6. E2E integration test scripts instead of unit tests (for Playwright flows)
 
-**Decision**: Provide manual integration test scripts (`scripts/test_find_patient_playwright.py`, `scripts/test_create_appointment_playwright.py`, `scripts/test_e2e_flow.py`) that run against Healthie. No unit tests with mocked Playwright.
+**Decision**: Provide manual integration test scripts (`scripts/test_find_patient_playwright.py`, `scripts/test_create_appointment_playwright.py`, `scripts/test_e2e_flow.py`) that run against Healthie platform. No unit tests with mocked Playwright.
 
 **Alternative**: Unit tests that mock Playwright's page/locator objects to verify the automation logic in isolation.
 
